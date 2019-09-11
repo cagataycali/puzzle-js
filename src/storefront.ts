@@ -1,17 +1,17 @@
-import {GatewayStorefrontInstance} from "./gatewayStorefront";
-import {Page} from "./page";
-import async from "async";
-import {EVENTS, HEALTHCHECK_PATHS, HTTP_METHODS, HTTP_STATUS_CODE} from "./enums";
-import {wait} from "./util";
-import {Logger} from "./logger";
-import {callableOnce, sealed} from "./decorators";
-import {container, TYPES} from "./base";
-import {Server} from "./server";
-import {IGatewayMap, IPageMap, IStorefrontConfig} from "./types";
+import { GatewayStorefrontInstance } from "./gatewayStorefront";
+import { Page } from "./page";
+import { series } from "async";
+import { EVENTS, HEALTHCHECK_PATHS, HTTP_METHODS, HTTP_STATUS_CODE } from "./enums";
+import { LIB_CONTENT_DEBUG, wait } from "./util";
+import { Logger } from "./logger";
+import { callableOnce, sealed } from "./decorators";
+import { container, TYPES } from "./base";
+import { Server } from "./server";
+import { IGatewayMap, IPageMap, IStorefrontConfig } from "./types";
 import ResourceFactory from "./resourceFactory";
-import {GATEWAY_PREPERATION_CHECK_INTERVAL, PUZZLE_DEBUGGER_LINK, TEMP_FOLDER} from "./config";
-import {StorefrontConfigurator} from "./configurator";
-import path from "path";
+import { GATEWAY_PREPERATION_CHECK_INTERVAL, PUZZLE_DEBUGGER_LINK, TEMP_FOLDER } from "./config";
+import { StorefrontConfigurator } from "./configurator";
+
 import fs from "fs";
 
 const logger = container.get(TYPES.Logger) as Logger;
@@ -50,7 +50,7 @@ export class Storefront {
     @callableOnce
     init(cb?: Function) {
         logger.info('Starting Puzzle Storefront');
-        async.series([
+        series([
             this.registerDependencies.bind(this),
             this.waitForGateways.bind(this),
             this.registerDebugScripts.bind(this),
@@ -93,7 +93,8 @@ export class Storefront {
      */
     private async registerDebugScripts(cb: Function) {
         this.server.addRoute(PUZZLE_DEBUGGER_LINK, HTTP_METHODS.GET, (req, res) => {
-            res.sendFile(path.join(__dirname, './public/puzzle_debug.js'));
+            res.set('Content-Type', 'application/javascript');
+            res.send(LIB_CONTENT_DEBUG);
         });
 
         cb(null);
@@ -125,7 +126,7 @@ export class Storefront {
         });
 
         this.config.pages.forEach(pageConfiguration => {
-            this.pages.set(pageConfiguration.name,  new Page(pageConfiguration.html, this.gateways, pageConfiguration.name));
+            this.pages.set(pageConfiguration.name, new Page(pageConfiguration.html, this.gateways, pageConfiguration.name));
         });
     }
 
@@ -172,7 +173,7 @@ export class Storefront {
     private addPageRoute(cb: Function) {
         this.config.pages.forEach(pageConfiguration => {
             const page = this.pages.get(pageConfiguration.name);
-            if(page){
+            if (page) {
                 logger.info(`Adding page ${pageConfiguration.name} route: ${pageConfiguration.url}`);
                 this.server.addRoute(pageConfiguration.url, HTTP_METHODS.GET, (req, res, next) => {
                     logger.info(`Request route name: ${page.name} - ${req.url} - ${JSON.stringify(req.headers)}`);

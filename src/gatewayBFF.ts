@@ -1,5 +1,5 @@
-import {FragmentBFF} from "./fragment";
-import {Api} from "./api";
+import { FragmentBFF } from "./fragment";
+import { Api } from "./api";
 import {
     CONTENT_REPLACE_SCRIPT,
     DEFAULT_MAIN_PARTIAL,
@@ -10,7 +10,7 @@ import {
     RESOURCE_INJECT_TYPE,
     RESOURCE_JS_EXECUTE_TYPE,
 } from "./enums";
-import {PREVIEW_PARTIAL_QUERY_NAME, RENDER_MODE_QUERY_NAME, VERSION_QUERY_NAME} from "./config";
+import { PREVIEW_PARTIAL_QUERY_NAME, RENDER_MODE_QUERY_NAME, VERSION_QUERY_NAME } from "./config";
 import {
     FragmentModel,
     ICookieMap,
@@ -21,24 +21,23 @@ import {
     IGatewayBFFConfiguration
 } from "./types";
 import md5 from "md5";
-import async from "async";
+import { series } from "async";
 import path from "path";
 import express from "express";
-import {Server} from "./server";
-import {container, TYPES} from "./base";
+import { Server } from "./server";
+import { container, TYPES } from "./base";
 import cheerio from "cheerio";
-import {callableOnce, sealed} from "./decorators";
-import {GatewayConfigurator} from "./configurator";
-import {Template} from "./template";
-import {Logger} from "./logger";
+import { callableOnce, sealed } from "./decorators";
+import { GatewayConfigurator } from "./configurator";
+import { Template } from "./template";
+import { Logger } from "./logger";
 import cors from "cors";
 import routeCache from "route-cache";
-import {RESOURCE_TYPE} from "./lib/enums";
-import fs from "fs";
+import { RESOURCE_TYPE } from "@puzzle-js/client-lib/dist/enums";
 import ResourceInjector from "./resource-injector";
+import { LIB_CONTENT } from "./util";
 
 const logger = container.get(TYPES.Logger) as Logger;
-
 
 @sealed
 export class GatewayBFF {
@@ -76,7 +75,7 @@ export class GatewayBFF {
      */
     @callableOnce
     init(cb?: Function) {
-        async.series([
+        series([
             this.addCorsPlugin.bind(this),
             this.addCustomHeaders.bind(this),
             this.addPlaceholderRoutes.bind(this),
@@ -218,7 +217,7 @@ export class GatewayBFF {
         const fragmentVersion = fragment.config.versions[version];
 
         dom('head').prepend(ResourceInjector.wrapJsAsset({
-            content: fs.readFileSync(path.join(__dirname, `/lib/puzzle.min.js`)).toString(),
+            content: LIB_CONTENT,
             injectType: RESOURCE_INJECT_TYPE.INLINE,
             name: 'puzzle-lib',
             link: '',

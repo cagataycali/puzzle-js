@@ -1,25 +1,20 @@
-import express, {Express} from "express";
+import express, { Express, NextFunction, Request, Response } from "express";
 import cookieParser from "cookie-parser";
-import helmet from "helmet";
 import "reflect-metadata";
-import morgan from "morgan";
 import bodyParser from "body-parser";
-import * as Http from "http";
-import {NextFunction, Request, Response} from "express";
-import {ServeStaticOptions} from "serve-static";
-import {EVENTS, HTTP_METHODS, TRANSFER_PROTOCOLS} from "./enums";
-import {Logger} from "./logger";
-import {pubsub} from "./util";
-import shrinkRay from "shrink-ray-current";
-import compression from "compression";
-import {injectable} from "inversify";
-import responseTime from "response-time";
-import {BROTLI, GLOBAL_REQUEST_TIMEOUT, NO_COMPRESS_QUERY_NAME, USE_HELMET, USE_MORGAN} from "./config";
-import {ICustomHeader, INodeSpdyConfiguration, ISpdyConfiguration} from "./types";
-import * as spdy from "spdy";
 import http from "http";
 import https from "https";
-
+import { ServeStaticOptions } from "serve-static";
+import { EVENTS, HTTP_METHODS, TRANSFER_PROTOCOLS } from "./enums";
+import { Logger } from "./logger";
+import { pubsub } from "./util";
+import shrinkRay from "shrink-ray-current";
+import compression from "compression";
+import responseTime from "response-time";
+import { BROTLI, GLOBAL_REQUEST_TIMEOUT, NO_COMPRESS_QUERY_NAME, USE_HELMET, USE_MORGAN } from "./config";
+import { ICustomHeader, INodeSpdyConfiguration, ISpdyConfiguration } from "./types";
+import * as spdy from "spdy";
+import { injectable } from 'inversify';
 
 const morganLoggingLevels = [
     'Date: [:date[clf]]',
@@ -42,7 +37,7 @@ const compressionFilter = {
 @injectable()
 export class Server {
     app: Express;
-    server!: Http.Server | spdy.Server | null;
+    server!: http.Server | spdy.Server | null;
     private spdyConfiguration: INodeSpdyConfiguration;
 
 
@@ -192,9 +187,9 @@ export class Server {
      */
     private addMiddlewares() {
         this.app.use(responseTime());
-        if (USE_MORGAN) this.app.use(morgan(morganLoggingLevels.join('||'), {stream: Logger.prototype}));
-        if (USE_HELMET) this.app.use(helmet());
-        this.app.use(bodyParser.urlencoded({extended: true}));
+        if (USE_MORGAN) this.app.use(require('morgan')(morganLoggingLevels.join('||'), { stream: Logger.prototype }));
+        if (USE_HELMET) this.app.use(require('helmet')());
+        this.app.use(bodyParser.urlencoded({ extended: true }));
         this.app.use(bodyParser.json());
         this.app.use(cookieParser());
 

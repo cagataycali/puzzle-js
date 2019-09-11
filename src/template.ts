@@ -1,6 +1,6 @@
-import {FragmentStorefront} from "./fragment";
+import { FragmentStorefront } from "./fragment";
 import cheerio from "cheerio";
-import {TemplateCompiler} from "./templateCompiler";
+import { TemplateCompiler } from "./templateCompiler";
 import {
   CHEERIO_CONFIGURATION,
   CONTENT_NOT_FOUND_ERROR,
@@ -19,17 +19,15 @@ import {
   IReplaceSet,
   IWaitedResponseFirstFlush
 } from "./types";
-import {HTTP_STATUS_CODE, REPLACE_ITEM_TYPE, RESOURCE_LOCATION} from "./enums";
+import { HTTP_STATUS_CODE, REPLACE_ITEM_TYPE, RESOURCE_LOCATION } from "./enums";
 import ResourceInjector from "./resource-injector";
-import {isDebug} from "./util";
-import {TemplateClass} from "./templateClass";
-import {ERROR_CODES, PuzzleError} from "./errors";
-import {benchmark} from "./decorators";
-import {Logger} from "./logger";
-import {container, TYPES} from "./base";
-import fs from "fs";
-import path from "path";
-import {EVENT} from "./lib/enums";
+import { isDebug, LIB_CONTENT, LIB_CONTENT_DEBUG } from "./util";
+import { TemplateClass } from "./templateClass";
+import { ERROR_CODES, PuzzleError } from "./errors";
+import { benchmark } from "./decorators";
+import { Logger } from "./logger";
+import { container, TYPES } from "./base";
+import { EVENT } from "@puzzle-js/client-lib/dist/enums";
 import express from "express";
 
 const logger = container.get(TYPES.Logger) as Logger;
@@ -165,8 +163,8 @@ export class Template {
     /**
      * todo Bu kafa olmaz runtimeda debug not debug degismez, handler ici runtime guzel olur.
      */
-    const puzzleLib = fs.readFileSync(path.join(__dirname, `/lib/${isDebug ? 'puzzle_debug.min.js' : 'puzzle.min.js'}`)).toString();
-    const clearLibOutput = Template.replaceCustomScripts(this.dom.html().replace('{puzzleLibContent}', puzzleLib), false);
+    const puzzleLib = isDebug ? LIB_CONTENT_DEBUG : LIB_CONTENT;
+    const clearLibOutput = Template.replaceCustomScripts(this.dom.html().replace('{puzzleLibContent}', puzzleLib), true);
 
     logger.info(`[Compiling Page ${this.name}]`, 'Sending virtual dom to compiler');
     return this.buildHandler(TemplateCompiler.compile(Template.clearHtmlContent(clearLibOutput)), chunkReplacements, waitedFragmentReplacements, replaceScripts, isDebug);
@@ -275,7 +273,7 @@ export class Template {
         });
     }));
 
-    return {template, statusCode, headers, cookies};
+    return { template, statusCode, headers, cookies };
   }
 
   /**
@@ -304,6 +302,7 @@ export class Template {
     this.pageClass._onRequest(req);
     const fragmentedHtml = firstFlushHandler.call(this.pageClass, req);
     const waitedReplacement = await this.replaceWaitedFragments(waitedFragments, fragmentedHtml, req, isDebug);
+
     for (const prop in waitedReplacement.headers) {
       res.set(prop, waitedReplacement.headers[prop]);
     }
@@ -313,7 +312,9 @@ export class Template {
       }
       res.cookie(prop, waitedReplacement.cookies[prop].value, waitedReplacement.cookies[prop].options);
     }
+
     res.status(waitedReplacement.statusCode);
+
     if (waitedReplacement.statusCode === HTTP_STATUS_CODE.MOVED_PERMANENTLY) {
       res.end();
       this.pageClass._onResponseEnd();
@@ -334,12 +335,12 @@ export class Template {
    * @param res
    */
   async chunkedHandler(firstFlushHandler: Function,
-                       waitedFragments: IReplaceSet[],
-                       chunkedFragmentReplacements: IReplaceSet[],
-                       jsReplacements: IReplaceAsset[],
-                       isDebug: boolean,
-                       req: express.Request,
-                       res: CompressionStreamResponse) {
+    waitedFragments: IReplaceSet[],
+    chunkedFragmentReplacements: IReplaceSet[],
+    jsReplacements: IReplaceAsset[],
+    isDebug: boolean,
+    req: express.Request,
+    res: CompressionStreamResponse) {
     this.pageClass._onRequest(req);
     const fragmentedHtml = firstFlushHandler.call(this.pageClass, req).replace('</body>', '').replace('</html>', '');
     res.set('transfer-encoding', 'chunked');
@@ -349,7 +350,7 @@ export class Template {
     //Fire requests in parallel
     const waitedReplacementPromise = this.replaceWaitedFragments(waitedFragments, fragmentedHtml, req, isDebug);
 
-    for(let i = 0, len = chunkedFragmentReplacements.length; i < len; i++){
+    for (let i = 0, len = chunkedFragmentReplacements.length; i < len; i++) {
       waitedPromises.push(chunkedFragmentReplacements[i].fragment.getContent(TemplateCompiler.processExpression(chunkedFragmentReplacements[i].fragmentAttributes, this.pageClass, req), req));
     }
 
@@ -371,7 +372,7 @@ export class Template {
       res.flush();
 
       //Bind flush method to resolved or being resolved promises of chunked replacements
-      for(let i = 0, len = chunkedFragmentReplacements.length; i < len; i++){
+      for (let i = 0, len = chunkedFragmentReplacements.length; i < len; i++) {
         waitedPromises[i].then(this.flush(chunkedFragmentReplacements[i], jsReplacements, res, isDebug));
       }
 

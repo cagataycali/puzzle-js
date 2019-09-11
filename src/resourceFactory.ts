@@ -1,8 +1,8 @@
 import nodeFetch from "node-fetch";
-import {EVENTS, HTTP_METHODS, RESOURCE_INJECT_TYPE} from "./enums";
-import {pubsub} from "./util";
-import {IFileResourceStorefrontDependency} from "./types";
-import {RESOURCE_TYPE} from "./lib/enums";
+import { EVENTS, HTTP_METHODS, RESOURCE_INJECT_TYPE } from "./enums";
+import { pubsub } from "./util";
+import { IFileResourceStorefrontDependency } from "./types";
+import { RESOURCE_TYPE } from "@puzzle-js/client-lib/dist/enums";
 
 const singletonSymbol = Symbol();
 
@@ -43,7 +43,7 @@ export default class ResourceFactory {
         const dependency = this.resources[dependencyName];
         if (dependency && dependency.link) {
             const req = await nodeFetch(dependency.link);
-            return await req.text();
+            return req.text();
         } else if (dependency.content) {
             return dependency.content;
         } else {

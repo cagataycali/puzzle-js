@@ -1,5 +1,5 @@
-import {GatewayStorefrontInstance} from "./gatewayStorefront";
-import {NextFunction, Request, Response} from "express-serve-static-core";
+import { GatewayStorefrontInstance } from "./gatewayStorefront";
+import { NextFunction, Request, Response } from "express-serve-static-core";
 import {
     HTTP_METHODS,
     REPLACE_ITEM_TYPE,
@@ -8,12 +8,12 @@ import {
     RESOURCE_LOCATION,
     TRANSFER_PROTOCOLS
 } from "./enums";
-import {FragmentStorefront} from "./fragment";
-import {Page} from "./page";
-import {RESOURCE_LOADING_TYPE, RESOURCE_TYPE} from "./lib/enums";
-import {RouteConfiguration} from "puzzle-warden/dist/request-manager";
-import {MATCHER_FN} from "./cookie-version-matcher";
-import express, {CookieOptions} from "express";
+import { FragmentStorefront } from "./fragment";
+import { Page } from "./page";
+import { RESOURCE_LOADING_TYPE, RESOURCE_TYPE } from "@puzzle-js/client-lib/dist/enums";
+import { RouteConfiguration } from "puzzle-warden/dist/request-manager";
+import { MATCHER_FN } from "./cookie-version-matcher";
+import express, { CookieOptions } from "express";
 
 export interface IFragmentCookieMap {
     name: string;
